@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSharp.ScreenPlayer.Lang\FSharp.ScreenPlayer.Lang.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
+  </ItemGroup>
+
+</Project>

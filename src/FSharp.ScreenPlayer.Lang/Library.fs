@@ -151,7 +151,6 @@ module Lang =
             | '\n' ->
                 parse doc (Seq.skip 1 source)
             | _ ->
-                printfn "parse action"
                 match parseAction source with
                 | Some action ->
                     parse (Seq.append doc [Action (Description action)]) (Seq.skip (Seq.length action) source)
