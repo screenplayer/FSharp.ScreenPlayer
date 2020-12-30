@@ -7,6 +7,6 @@ ${Contact}={
 [ENT]
 @{CharacterA} "Hello, B"
 @{CharacterB} "Hello, A"
-@{Character}(with sad face) "Long time no see"(pause)"Where have you been"
+@{Character} (with sad face) "Long time no see" (pause) "Where have you been"
 
 A new world started.

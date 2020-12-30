@@ -75,7 +75,7 @@ type TestClass () =
 
     [<Test>]
     member this.TestParentheticalDialogue () =
-        let str = "@{Hello}(parenthetical content) \"hello, world\""
+        let str = "@{Hello} (parenthetical content) \"hello, world\""
         let doc = Seq.empty
         let res = parse doc str
         Assert.AreEqual(Seq.length res, 1)
