@@ -1,159 +1,238 @@
 ﻿namespace FSharp.ScreenPlayer
 
-module Lang =
-    type Value = char seq
+open System
 
-    type Parenthetical = char seq
+module Chars =
+    let toString (chars: char seq) = chars |> Seq.toArray |> String
+
+module Lang =
+    type Value =
+        | Str of string
+        | List of string array
+
+    type Definition = { name: string; value: Value }
+
+    type SceneHeading =
+        | Interior of string
+        | Exterior of string
+        | Other of string
+        | Nested of SceneHeading array
+
+    type Annotation = Annotation of string
 
     type Character =
-        { name: char seq
-          parenthetical: Parenthetical option }
+        { name: string
+          annotation: Annotation option }
 
-    type SceneHeading = char seq
+    type SingleDialogue =
+        { character: Character
+          content: string }
 
-    type Dialogue = Character * char seq
+    type DualDialogue =
+        { characters: Character list
+          content: string }
+
+    type Dialogue =
+        | Single of SingleDialogue
+        | Dual of DualDialogue
+        | Group of Dialogue list
+
+    type Transition = string
 
     type Action =
         | Description of char seq
         | Behavior of Character array * char seq
 
     type Line =
-        | Definition of Value * Value
+        | Definition of Definition
         | SceneHeading of SceneHeading
         | Dialogue of Dialogue
-        | Transition of string
+        | Transition of Transition
         | Action of Action
 
     type Document = Line seq
 
-    let parseValue (doc: char seq) =
-        let firstChar = Seq.head doc
-        if firstChar = '{' then
-            match Seq.tryFindIndex (fun char -> char = '}') doc with
-            | Some index ->
-                let value = Seq.take (index + 1) doc
-                Some value
-            | None ->
-                None
-        else
-            None
+    type Source = { chars: char seq; offset: int }
 
-    let parseHeading (doc: char seq) =
-        let firstChar = Seq.head doc
-        if firstChar = '[' then
-            match Seq.tryFindIndex (fun char -> char = ']') doc with
-            | Some index ->
-                let value = Seq.take (index + 1) doc
-                Some value
-            | None ->
-                None
-        else
-            None
+    type ParseError = { offset: int; message: string }
 
-    let parseParenthetical (doc: char seq) =
-        let firstChar = Seq.head doc
-        if firstChar = '(' then
-            match Seq.tryFindIndex (fun char -> char = ')') (Seq.skip 1 doc) with
-            | Some index ->
-                let value = Seq.take (index + 2) doc
-                Some value
-            | None ->
-                None
-        else
-            None
+    let parseValue (source: Source) =
+        match Seq.tryHead source.chars with
+        | Some '{' ->
+            let start = Seq.tail source.chars
 
-    let parseDialogue (doc: char seq) =
-        let firstChar = Seq.head doc
-        if firstChar = '"' then
-            match Seq.tryFindIndex (fun char -> char = '"') (Seq.skip 1 doc) with
-            | Some index ->
-                let value = Seq.take (index + 2) doc
-                Some value
-            | None ->
-                None
-        else
-            None
+            let chars =
+                Seq.takeWhile (fun char -> char <> '}') start
 
-    let parseAction (doc: char seq) =
-        match Seq.tryFindIndex (fun char -> char = '\n') doc with
-        | Some index ->
-            let value = Seq.take (index + 1) doc
-            Some value
+            let valueLen = Seq.length chars
+            let tail = Seq.skip valueLen start
+
+            match Seq.tryHead tail with
+            | Some '}' ->
+                let value = Chars.toString chars
+
+                let parts =
+                    value.Split ';'
+                    |> Array.map (fun str -> str.Trim())
+
+                if Array.length parts = 1 then
+                    Ok(
+                        Str parts.[0],
+                        { source with
+                              chars = Seq.skip (valueLen + 2) source.chars
+                              offset = source.offset + valueLen + 2 }
+                    )
+                else
+                    Ok(
+                        List parts,
+                        { source with
+                              chars = Seq.skip (valueLen + 2) source.chars
+                              offset = source.offset + valueLen + 2 }
+                    )
+            | Some char ->
+                Error
+                    { offset = source.offset
+                      message = $"expected }}, but found {char}" }
+            | None ->
+                Error
+                    { offset = source.offset
+                      message = $"expected }}, but found nothing" }
+        | Some char ->
+            Error
+                { offset = source.offset
+                  message = $"expected {{, but found {char}" }
         | None ->
-            Some doc
+            Error
+                { offset = source.offset
+                  message = $"expected {{, but found nothing" }
 
-    type ParseResult = Result<Document, char seq>
+    let parseAnnotation (source: Source) =
+        match Seq.tryHead source.chars with
+        | Some '(' ->
+            let start = Seq.tail source.chars
 
-    let rec parse (doc: Line seq) (source: char seq) =
-        if Seq.isEmpty source then
-            doc
-        else
-            let firstChar = Seq.head source
-            match firstChar with
-            | '$' ->
-                match parseValue (Seq.skip 1 source) with
-                | Some key ->
-                    let left = Seq.skip ((Seq.length key) + 1) source
-                    if Seq.head left = '=' then
-                        match parseValue (Seq.skip 1 left) with
-                        | Some value ->
-                            let definition = Definition (key, value)
-                            parse (Seq.append doc [definition]) (Seq.skip ((Seq.length value) + 1) left)
-                        | None ->
-                            doc
-                    else
-                        doc
+            let chars =
+                Seq.takeWhile (fun char -> char <> ')') start
+
+            let valueLen = Seq.length chars
+            let tail = Seq.skip valueLen start
+
+            match Seq.tryHead tail with
+            | Some ')' ->
+                let value = Chars.toString chars
+
+                Ok(
+                    Annotation value,
+                    { source with
+                          chars = Seq.skip (valueLen + 2) source.chars
+                          offset = source.offset + valueLen + 2 }
+                )
+            | Some char ->
+                Error
+                    { offset = source.offset
+                      message = $"expected ), but found {char}" }
+            | None ->
+                Error
+                    { offset = source.offset
+                      message = $"expected ), but found nothing" }
+        | Some char ->
+            Error
+                { offset = source.offset
+                  message = $"expected (, but found {char}" }
+        | None ->
+            Error
+                { offset = source.offset
+                  message = $"expected (, but found nothing" }
+
+    let parseDefinition (source: Source) =
+        match Seq.tryHead source.chars with
+        | Some '$' ->
+            match parseValue
+                      { source with
+                            chars = Seq.tail source.chars
+                            offset = source.offset + 1 } with
+            | Ok (Str key, newSource) ->
+                match Seq.tryHead newSource.chars with
+                | Some '=' ->
+                    match parseValue
+                              { newSource with
+                                    chars = Seq.tail newSource.chars
+                                    offset = newSource.offset + 1 } with
+                    | Ok (value, newSource) -> Ok({ name = key; value = value }, newSource)
+                    | Error error -> Error error
+                | Some char ->
+                    Error
+                        { offset = newSource.offset
+                          message = $"expected =, but found {char}" }
                 | None ->
-                    doc
-            | '[' ->
-                match parseHeading source with
-                | Some heading ->
-                    let sceneHeading = SceneHeading heading
-                    parse (Seq.append doc [sceneHeading]) (Seq.skip (Seq.length heading) source)
-                | None ->
-                    doc
-            | '@' ->
-                match parseValue (Seq.skip 1 source) with
-                | Some name ->
-                    let left = Seq.skipWhile (fun c -> c = ' ') (Seq.skip ((Seq.length name) + 1) source)
-                    let nextChar = Seq.head left
-                    let parenthetical =
-                        if nextChar = '(' then
-                            parseParenthetical left
-                        else
-                            None
-                    let parentheticalLength =
-                        match parenthetical with
-                        | Some content ->
-                            Seq.length content
-                        | None -> 0
-                    let character = { name = name; parenthetical = parenthetical }
-                    let content = Seq.skipWhile (fun c -> c = ' ') (Seq.skip parentheticalLength left)
-                    match Seq.head content with
-                    | '"' ->
-                        match parseDialogue content with
-                        | Some dialogue ->
-                            parse (Seq.append doc [Dialogue (character, dialogue)]) (Seq.skip (Seq.length dialogue) content)
-                        | None ->
-                            doc
-                    | _ ->
-                        match parseAction source with
-                        | Some action ->
-                            parse (Seq.append doc [Action (Description action)]) (Seq.skip (Seq.length action) source)
-                        | None ->
-                            doc
-                | None ->
-                    match parseAction source with
-                    | Some action ->
-                        parse (Seq.append doc [Action (Description action)]) (Seq.skip (Seq.length action) source)
-                    | None ->
-                        doc
-            | '\n' ->
-                parse doc (Seq.skip 1 source)
-            | _ ->
-                match parseAction source with
-                | Some action ->
-                    parse (Seq.append doc [Action (Description action)]) (Seq.skip (Seq.length action) source)
-                | None ->
-                    doc
-                
+                    Error
+                        { offset = newSource.offset
+                          message = $"expected =, but found nothing" }
+            | Ok (List keys, _) ->
+                Error
+                    { offset = source.offset
+                      message = $"expected string as key of definiation, but found list {keys}" }
+            | Error error -> Error error
+        | Some char ->
+            Error
+                { offset = source.offset
+                  message = $"expected $, but found {char}" }
+        | None ->
+            Error
+                { offset = source.offset
+                  message = $"expected $, but found nothing" }
+
+    let parseSceneHeading (source: Source) =
+        match Seq.tryHead source.chars with
+        | Some '[' ->
+            let start = Seq.tail source.chars
+
+            let chars =
+                Seq.takeWhile (fun char -> char <> ']') start
+
+            let valueLen = Seq.length chars
+            let tail = Seq.skip valueLen start
+
+            match Seq.tryHead tail with
+            | Some ']' ->
+                let value = Chars.toString chars
+
+                let parts =
+                    value.Split '/'
+                    |> Array.map
+                        (fun str ->
+                            match str with
+                            | "INT" -> Interior str
+                            | "EXT" -> Exterior str
+                            | _ -> Other str)
+
+                if Array.length parts = 1 then
+                    Ok(
+                        parts.[0],
+                        { source with
+                              chars = Seq.skip (valueLen + 2) source.chars
+                              offset = source.offset + valueLen + 2 }
+                    )
+                else
+                    Ok(
+                        Nested parts,
+                        { source with
+                              chars = Seq.skip (valueLen + 2) source.chars
+                              offset = source.offset + valueLen + 2 }
+                    )
+            | Some char ->
+                Error
+                    { offset = source.offset
+                      message = $"expected ], but found {char}" }
+            | None ->
+                Error
+                    { offset = source.offset
+                      message = $"expected ], but found nothing" }
+        | Some char ->
+            Error
+                { offset = source.offset
+                  message = $"expected [, but found {char}" }
+        | None ->
+            Error
+                { offset = source.offset
+                  message = $"expected [, but found nothing" }
