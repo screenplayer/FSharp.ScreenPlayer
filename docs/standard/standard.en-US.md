@@ -37,13 +37,13 @@ Character starts with **@{** and ends with **}**, similar to what you do on soci
 
 ### Dialogue
 
-Dialogue is started with **CharacterA**, words are surronded by **"**. For simultaneous dialogue, you can use **&&** to combine multiple dialogues or multiple characters
+Dialogue is started with **CharacterA**, words are surronded by **"**. For dual dialogue, you can use **&** to combine multiple dialogues or use **;** to combine multiple characters. 
 
     @{Character A} "Hello, B"
     @{Character B} "Hello, A"
 
-    @{Character A} "Hey, B" && @{Character B} "Hey A"
-    @{Character A} && @{Character B} "Morning"
+    @{Character A} "Hey, B" & @{Character B} "Hey A"
+    @{Character A; Character B} "Morning"
 
 ### Annotation
 
@@ -53,9 +53,9 @@ Annotation are wrapped in parentheses
 
 ### Transition
 
-Transitions are start with ">>"
+Transitions are start with ">"
 
-    >> CUT TO:
+    > CUT TO
 
 ### Action
 

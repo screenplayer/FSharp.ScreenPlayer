@@ -1,0 +1,14 @@
+${Title}={Document of ScreenPlay}
+${Contact}={
+    mrchangji@outlook.com
+    https://github.com/ScreenPlayer/lang.git
+}
+${Characters}={John; Henry}
+
+[EXT]
+@{John} "Hi, Henry"
+@{Henry} "Hi, John"
+@{John; Henry}(with sad face) "Long time no see" (pause) "Where have you been"
+@{Henry} "Heaven" & @{John} "Hell"
+
+A new world started.
