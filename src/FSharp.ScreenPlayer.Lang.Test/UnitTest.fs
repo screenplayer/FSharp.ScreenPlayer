@@ -334,3 +334,46 @@ type TestClass() =
         | Error error ->
             Assert.AreEqual(0, error.offset)
             Assert.AreEqual("expected >, but found v", error.message)
+
+    [<Test>]
+    member this.TestAction() =
+        let str = "this is action"
+        let source = { chars = str; offset = 0 }
+
+        match parseAction source with
+        | Ok (value, newSource) ->
+            Assert.AreEqual(Description "this is action", value)
+            Assert.AreEqual(true, Seq.isEmpty newSource.chars)
+            Assert.AreEqual(14, newSource.offset)
+        | _ -> Assert.AreEqual(true, false)
+
+    [<Test>]
+    member this.TestMultipleActions() =
+        let str = """this is action""" + "\n" + """this is another action"""
+        let source = { chars = str; offset = 0 }
+
+        match parseAction source with
+        | Ok (value, newSource) ->
+            Assert.AreEqual(Description "this is action", value)
+            Assert.AreEqual(false, Seq.isEmpty newSource.chars)
+            Assert.AreEqual(14, newSource.offset)
+        | _ -> Assert.AreEqual(true, false)
+
+    [<Test>]
+    member this.TestMultipleStatements() =
+        let str =
+            """
+> CUT TO
+@{Henry} "Hello"
+@{John} "Hello"
+
+this is a action
+
+@{Henry} "Hello"
+            """
+        let source = { chars = str; offset = 0 }
+
+        match parse [||] source with
+        | Ok lines ->
+            Assert.AreEqual(14, Seq.length lines)
+        | _ -> Assert.AreEqual(true, false)

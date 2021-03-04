@@ -39,8 +39,9 @@ module Lang =
     type Transition = { name: string }
 
     type Action =
-        | Description of char seq
-        | Behavior of Character array * char seq
+        | LineBreak
+        | Description of string
+        | Behavior of Character array * string
 
     type Line =
         | Definition of Definition
@@ -436,9 +437,10 @@ module Lang =
 
     let parseAction (source: Source) =
         let chars =
-            Seq.takeWhile (fun char -> char <> '\n') source.chars
+            Seq.takeWhile (fun char -> char <> '\n' && char <> '\r') source.chars
 
         let value = Chars.toString chars
+
         let valueLen = Seq.length chars
 
         Ok(
@@ -490,6 +492,12 @@ module Lang =
                             { offset = newSource2.offset
                               message = "expected dialogue or actions" }
                 | Error error -> Error error
+            | Some '\r'
+            | Some '\n' ->
+                parse
+                    (Seq.append lines [| Action LineBreak |])
+                    { chars = Seq.tail source.chars
+                      offset = source.offset + 1 }
             | _ ->
                 match parseAction source with
                 | Ok (action, newSource) -> parse (Seq.append lines [| Action action |]) newSource

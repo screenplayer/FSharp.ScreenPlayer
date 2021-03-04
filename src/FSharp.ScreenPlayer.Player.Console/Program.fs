@@ -8,14 +8,14 @@ open FSharp.ScreenPlayer.Lang
 let main argv =
     let currDir = Directory.GetCurrentDirectory()
     let path = Path.Combine(currDir, "./data/test.scp")
-    let lines = File.ReadAllLines path |> Array.toSeq
+    let text = File.ReadAllText path
 
     let data =
         seq {
-            for line in lines do
-                for char in line do
-                    yield char
+            for char in text do
+                yield char
         }
+
 
     match parse Seq.empty { offset = 0; chars = data } with
     | Ok lines ->
