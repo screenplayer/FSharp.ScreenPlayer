@@ -11,7 +11,7 @@ let main argv =
     Text.Encoding.RegisterProvider(Text.CodePagesEncodingProvider.Instance);
 
     let currDir = Directory.GetCurrentDirectory()
-    let path = Path.Combine(currDir, "./data/test.scp")
+    let path = Path.Combine(currDir, argv.[0])
     let text = File.ReadAllText path
 
     let data =
