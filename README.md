@@ -17,10 +17,27 @@ The whole solution is build with F# on .Net 5.0, make sure you have install the 
     dotnet run --project src/FSharp.ScreenPlayer.Player.Console/FSharp.ScreenPlayer.Player.Console.fsproj ./data/test.scp
     ```
 
-2. FSharp.ScreenPlayer.Pdf
+3. FSharp.ScreenPlayer.Pdf
 
     this projects containes code for an console application which can transform the result of FSharp.ScreenPlayer.Lang to an PDF file. (only support Windows system now)
 
     ```shell
     dotnet run --project src/FSharp.ScreenPlayer.Pdf/FSharp.ScreenPlayer.Pdf.fsproj ./data/test.scp
     ```
+
+4. FSharp.ScreenPlayer.Player.Fable
+
+    this projects contains code for an web player build with [Fable](https://fable.io), it can be used to play the screen play file with animation
+
+5. FSharp.ScreenPlayer.Fable
+
+    this projects contains an Fable web app that uses FSharp.ScreenPlayer.Player.Fable. It provides an simple text editor and previewer.
+
+    ```
+    cd src/FSharp.ScreenPlayer.Fable
+    npm install
+    npm start
+    ```
+
+    then open http://localhost:8080 with browser
+
