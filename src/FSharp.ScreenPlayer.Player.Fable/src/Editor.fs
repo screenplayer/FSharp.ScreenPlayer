@@ -8,15 +8,50 @@ open Fable.React.Helpers
 open Fable.React.Standard
 open Browser.Types
 
-type Model =
-    { content: string }
+Fable.Core.JsInterop.importAll "./Editor.css"
 
-type Msg = UpdateContent of string
+type Model = { title: string; content: string }
+
+type Msg =
+    | Preview
+    | Update of string
+    | Cancel
+    | Submit
+
+let init (title: string) (content: string) =
+    { title = title; content = content }
+
+let update (msg: Msg) (model: Model) =
+    match msg with
+    | Update content ->
+        { model with content = content }, Cmd.none
+    | _ ->
+        model, Cmd.none
 
 let view (model: Model) (dispatch: Dispatch<Msg>) =
     let handleInput (evt: Event) =
-        dispatch (UpdateContent (evt.target :?> HTMLTextAreaElement).value)
+        dispatch (Update (evt.target :?> HTMLTextAreaElement).value)
+
+    let handleCancel (evt: Event) = dispatch Cancel
+
+    let handleSubmit (evt: Event) = dispatch Submit
 
     div [ Class "screenplay__editor" ] [
-        textarea [ OnInput handleInput; Value model.content ] []
+        header [ Class "screenplay__editor__header" ] [
+            h4 [] [ str model.title ]
+            button [ Class "button button--primary" ] [
+                str "Preview"
+            ]
+        ]
+        textarea [ Class "screenplay__editor__input"
+                   OnInput handleInput
+                   Value model.content ] []
+        footer [ Class "screenplay__editor__actions" ] [
+            button [ Class "button button--outline"; OnClick handleCancel ] [
+                str "Cancel"
+            ]
+            button [ Class "button button--primary"; OnClick handleSubmit ] [
+                str "Save"
+            ]
+        ]
     ]

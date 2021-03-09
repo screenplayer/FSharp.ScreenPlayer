@@ -18,6 +18,14 @@ module Lang =
         | Other of string
         | Nested of SceneHeading array
 
+        override self.ToString() =
+            match self with
+            | Interior interior -> $"Interior - {interior}"
+            | Exterior exterior -> $"Interior - {exterior}"
+            | Other interior -> $"{interior}"
+            | Nested scenes ->
+                String.Join(" / ", Array.map (fun scene -> scene.ToString()) scenes)
+
     type Annotation = Annotation of string
 
     type Character =

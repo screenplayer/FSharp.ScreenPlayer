@@ -11,7 +11,9 @@
   "name": "FSharp.ScreenPlayer.Fable",
   "version": "1.0.0",
   "dependencies": {
+    "css-loader": "^5.1.1",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "style-loader": "^2.0.0"
   }
 }
