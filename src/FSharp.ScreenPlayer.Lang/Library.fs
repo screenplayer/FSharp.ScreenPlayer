@@ -20,7 +20,9 @@ module Lang =
 
         override self.ToString() =
             match self with
+            | Interior "" -> "Interior"
             | Interior interior -> $"Interior - {interior}"
+            | Exterior "" -> "Exterior"
             | Exterior exterior -> $"Exterior - {exterior}"
             | Other sceneheading -> $"{sceneheading}"
             | Nested scenes ->
@@ -181,17 +183,17 @@ module Lang =
                     |> Array.map
                         (fun str ->
                             let parts = str.Split '-'
-                            match parts.[0] with
+                            match parts.[0].Trim() with
                             | "INT" ->
                                 match Array.tryItem 1 parts with
                                 | Some details ->
-                                    Interior details
+                                    Interior (details.Trim())
                                 | _ ->
                                     Interior ""
                             | "EXT" ->
                                 match Array.tryItem 1 parts with
                                 | Some details ->
-                                    Exterior details
+                                    Exterior (details.Trim())
                                 | _ ->
                                     Exterior ""
                             | _ -> Other str)

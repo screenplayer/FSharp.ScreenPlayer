@@ -89,9 +89,21 @@ type TestClass() =
 
         match parseSceneHeading source with
         | Ok (value, newSource) ->
-            Assert.AreEqual(Interior "INT", value)
+            Assert.AreEqual(Interior "", value)
             Assert.AreEqual(true, Seq.isEmpty newSource.chars)
             Assert.AreEqual(5, newSource.offset)
+        | _ -> Assert.AreEqual(true, false)
+
+    [<Test>]
+    member this.TestSceneHeadingWithDetails() =
+        let str = "[INT - Hello]"
+        let source = { chars = str; offset = 0 }
+
+        match parseSceneHeading source with
+        | Ok (value, newSource) ->
+            Assert.AreEqual(Interior "Hello", value)
+            Assert.AreEqual(true, Seq.isEmpty newSource.chars)
+            Assert.AreEqual(13, newSource.offset)
         | _ -> Assert.AreEqual(true, false)
 
     [<Test>]
@@ -102,8 +114,8 @@ type TestClass() =
         match parseSceneHeading source with
         | Ok (value, newSource) ->
             Assert.AreEqual(
-                Nested [| Interior "INT"
-                          Exterior "EXT" |],
+                Nested [| Interior ""
+                          Exterior "" |],
                 value
             )
 
