@@ -21,8 +21,8 @@ module Lang =
         override self.ToString() =
             match self with
             | Interior interior -> $"Interior - {interior}"
-            | Exterior exterior -> $"Interior - {exterior}"
-            | Other interior -> $"{interior}"
+            | Exterior exterior -> $"Exterior - {exterior}"
+            | Other sceneheading -> $"{sceneheading}"
             | Nested scenes ->
                 String.Join(" / ", Array.map (fun scene -> scene.ToString()) scenes)
 
@@ -180,9 +180,20 @@ module Lang =
                     value.Split '/'
                     |> Array.map
                         (fun str ->
-                            match str with
-                            | "INT" -> Interior str
-                            | "EXT" -> Exterior str
+                            let parts = str.Split '-'
+                            match parts.[0] with
+                            | "INT" ->
+                                match Array.tryItem 1 parts with
+                                | Some details ->
+                                    Interior details
+                                | _ ->
+                                    Interior ""
+                            | "EXT" ->
+                                match Array.tryItem 1 parts with
+                                | Some details ->
+                                    Exterior details
+                                | _ ->
+                                    Exterior ""
                             | _ -> Other str)
 
                 if Array.length parts = 1 then

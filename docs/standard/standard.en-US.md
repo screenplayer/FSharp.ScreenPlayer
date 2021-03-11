@@ -21,10 +21,10 @@ When writing screen play, authors can start with definitons, like title, author 
 
 ### Scene Heading
 
-Scene Heading are strings wrapped by square brackets. Use **/** to indicate nested scene, like EXT/INT means some interior scene in outside.
+Scene Heading are strings wrapped by square brackets. Use **-** to describe scene and **/** to indicate nested scene, like EXT/INT means some interior scene in outside.
 
-    [EXT]
-    [INT]
+    [EXT - in a lake]
+    [INT - in a house]
     [EST]
     [EXT/INT]
     [INT/EXT]

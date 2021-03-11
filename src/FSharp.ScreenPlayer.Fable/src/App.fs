@@ -3,10 +3,13 @@ module App
 open Elmish
 open Elmish.React
 open Fable.React
+open Fable.React.Props
 
 open FSharp.ScreenPlayer.Lang
 
 open ScreenPlayer
+
+Fable.Core.JsInterop.importAll "./App.css"
 
 type Model =
     { editorModel: Editor.Model
@@ -15,6 +18,11 @@ type Model =
 type Msg =
     | EditorMsg of Editor.Msg
     | PlayerMsg of Player.Msg
+
+let filterLinebreak (line: Line) =
+    match line with
+    | Action LineBreak -> false
+    | _ -> true
 
 let init () =
     { editorModel = Editor.init "ScreenPlay" ""
@@ -35,7 +43,9 @@ let update (msg: Msg) (model: Model) =
                       chars = model.editorModel.content }
 
                 match parse [||] source with
-                | Ok lines -> lines
+                | Ok lines ->
+                    lines
+                    |> Seq.filter filterLinebreak
                 | _ -> Seq.empty
 
             let playerModel =
@@ -59,9 +69,15 @@ let update (msg: Msg) (model: Model) =
         { model with playerModel = playerModel }, Cmd.map PlayerMsg playerCmd
 
 let view (model: Model) (dispatch: Dispatch<Msg>) =
-    div [] [
-        Player.view model.playerModel (dispatch << PlayerMsg)
-        Editor.view model.editorModel (dispatch << EditorMsg)
+    div [ Class "screenplay" ] [
+        div [ Class "portal" ] [
+            div [ Class "container" ] [
+                Player.view model.playerModel (dispatch << PlayerMsg)
+            ]
+        ]
+        div [ Class "container" ] [
+            Editor.view model.editorModel (dispatch << EditorMsg)
+        ]
     ]
 
 Program.mkProgram init update view
