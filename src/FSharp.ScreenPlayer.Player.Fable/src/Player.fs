@@ -28,8 +28,9 @@ module Line =
 
     let sceneHeadingView (sceneHeading: SceneHeading) =
         let text = sceneHeading.ToString()
+
         div [ Class "scene" ] [
-            h1 [] [str text ]
+            h1 [] [ str text ]
         ]
 
     let characterView (character: Character) =
@@ -39,16 +40,26 @@ module Line =
             | None -> ""
 
         div [ Class "character" ] [
-            h4 [] [
-                span [ Class "character__name" ] [ str character.name ]
-                span [ Class "character__annotation" ] [ str annotation ]
+            div [ Class "character__header" ] [
+                span [ Class "character__name" ] [
+                    str character.name
+                ]
+                span [ Class "character__annotation" ] [
+                    str annotation
+                ]
             ]
         ]
 
     let contentView (content: DialogueContent) =
         match content with
-        | DialogueText text -> p [ Class "dialogue__text" ] [ str text ]
-        | DialogueAnnotation (Annotation annotation) -> p [ Class "dialogue__annotation" ] [ str annotation ]
+        | DialogueText text ->
+            p [ Class "dialogue__text" ] [
+                str text
+            ]
+        | DialogueAnnotation (Annotation annotation) ->
+            p [ Class "dialogue__annotation" ] [
+                str annotation
+            ]
 
     let dialogueView (dialogue: Dialogue) =
         let characters =
@@ -70,7 +81,7 @@ module Line =
             | Description description -> description
             | Behavior (characters, description) -> String.Join(", ", characters) + " " + description
 
-        p [] [ str text ]
+        p [ Class "action" ] [ str text ]
 
     let view (line: Line) =
         match line with
@@ -112,10 +123,12 @@ let view (model: Model) (dispatch: Dispatch<Msg>) =
             ]
         ]
         footer [ Class "screenplay__player__actions" ] [
-            button [ Disabled (model.index = 0); OnClick handlePrevious ] [
+            button [ Disabled(model.index = 0)
+                     OnClick handlePrevious ] [
                 str "Prev"
             ]
-            button [ Disabled (model.index >= (Seq.length model.lines - 1)); OnClick handleNext ] [
+            button [ Disabled(model.index >= (Seq.length model.lines - 1))
+                     OnClick handleNext ] [
                 str "Next"
             ]
         ]

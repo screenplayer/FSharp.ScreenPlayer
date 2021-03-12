@@ -11,13 +11,19 @@ open ScreenPlayer
 
 Fable.Core.JsInterop.importAll "./App.css"
 
+type Mode =
+    | Preview
+    | Edit
+
 type Model =
     { editorModel: Editor.Model
-      playerModel: Player.Model }
+      playerModel: Player.Model
+      mode: Mode }
 
 type Msg =
     | EditorMsg of Editor.Msg
     | PlayerMsg of Player.Msg
+    | Dismiss
 
 let filterLinebreak (line: Line) =
     match line with
@@ -26,7 +32,8 @@ let filterLinebreak (line: Line) =
 
 let init () =
     { editorModel = Editor.init "ScreenPlay" ""
-      playerModel = Player.init [] },
+      playerModel = Player.init []
+      mode = Edit },
     Cmd.none
 
 let update (msg: Msg) (model: Model) =
@@ -40,12 +47,10 @@ let update (msg: Msg) (model: Model) =
             let lines =
                 let source =
                     { offset = 0
-                      chars = model.editorModel.content }
+                      chars = editorModel.content }
 
                 match parse [||] source with
-                | Ok lines ->
-                    lines
-                    |> Seq.filter filterLinebreak
+                | Ok lines -> lines |> Seq.filter filterLinebreak
                 | _ -> Seq.empty
 
             let playerModel =
@@ -57,6 +62,14 @@ let update (msg: Msg) (model: Model) =
                   editorModel = editorModel
                   playerModel = playerModel },
             Cmd.map EditorMsg editorCmd
+        | Editor.Msg.Preview ->
+            let (editorModel, editorCmd) =
+                Editor.update editorMsg model.editorModel
+
+            { model with
+                  editorModel = editorModel
+                  mode = Preview },
+            Cmd.map EditorMsg editorCmd
         | _ ->
             let (editorModel, editorCmd) =
                 Editor.update editorMsg model.editorModel
@@ -67,12 +80,24 @@ let update (msg: Msg) (model: Model) =
             Player.update playerMsg model.playerModel
 
         { model with playerModel = playerModel }, Cmd.map PlayerMsg playerCmd
+    | Dismiss ->
+        { model with mode = Edit }, Cmd.none
 
 let view (model: Model) (dispatch: Dispatch<Msg>) =
+    let handleDismiss evt = dispatch Dismiss
+
+    let portalState =
+        match model.mode with
+        | Edit -> "hidden"
+        | Preview -> "shown"
+
     div [ Class "screenplay" ] [
-        div [ Class "portal" ] [
-            div [ Class "container" ] [
-                Player.view model.playerModel (dispatch << PlayerMsg)
+        div [ Class $"portal portal--{portalState}" ] [
+            div [ Class "portal__backdrop"; OnClick handleDismiss ] []
+            div [ Class "portal__body" ] [
+                div [ Class "container" ] [
+                    Player.view model.playerModel (dispatch << PlayerMsg)
+                ]
             ]
         ]
         div [ Class "container" ] [

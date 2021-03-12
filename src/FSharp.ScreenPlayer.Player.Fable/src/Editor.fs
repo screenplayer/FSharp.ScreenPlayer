@@ -36,16 +36,18 @@ let view (model: Model) (dispatch: Dispatch<Msg>) =
 
     let handleSubmit (evt: Event) = dispatch Submit
 
+    let handlePreview (evt: Event) = dispatch Preview
+
     div [ Class "screenplay__editor" ] [
         header [ Class "screenplay__editor__header" ] [
             h4 [] [ str model.title ]
-            button [ Class "button button--primary" ] [
+            button [ Class "button button--primary"; OnClick handlePreview ] [
                 str "Preview"
             ]
         ]
         textarea [ Class "screenplay__editor__input"
                    OnInput handleInput
-                   Value model.content ] []
+                   DefaultValue model.content ] []
         footer [ Class "screenplay__editor__actions" ] [
             button [ Class "button button--outline"; OnClick handleCancel ] [
                 str "Cancel"
