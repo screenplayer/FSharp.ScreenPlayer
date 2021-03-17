@@ -25,8 +25,7 @@ module Lang =
             | Exterior "" -> "Exterior"
             | Exterior exterior -> $"Exterior - {exterior}"
             | Other sceneheading -> $"{sceneheading}"
-            | Nested scenes ->
-                String.Join(" / ", Array.map (fun scene -> scene.ToString()) scenes)
+            | Nested scenes -> String.Join(" / ", Array.map (fun scene -> scene.ToString()) scenes)
 
     type Annotation = Annotation of string
 
@@ -62,6 +61,7 @@ module Lang =
 
     type Source =
         { chars: char seq
+          line: int
           offset: int }
 
         static member skipWhitespaces(source: Source) =
@@ -70,10 +70,11 @@ module Lang =
 
             let count = Seq.length whitespaces
 
-            { chars = Seq.skip count source.chars
-              offset = source.offset + count }
+            { source with
+                  chars = Seq.skip count source.chars
+                  offset = source.offset + count }
 
-    type ParseError = { offset: int; message: string }
+    type ParseError = { line: int; offset: int; message: string }
 
     let parseValue (source: Source) =
         match Seq.tryHead source.chars with
@@ -110,19 +111,23 @@ module Lang =
                     )
             | Some char ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected }}, but found {char}" }
             | None ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected }}, but found nothing" }
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected {{, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected {{, but found nothing" }
 
     let parseDefinition (source: Source) =
@@ -143,24 +148,29 @@ module Lang =
                     | Error error -> Error error
                 | Some char ->
                     Error
-                        { offset = newSource.offset
+                        { line = newSource.line
+                          offset = newSource.offset
                           message = $"expected =, but found {char}" }
                 | None ->
                     Error
-                        { offset = newSource.offset
+                        { line = newSource.line
+                          offset = newSource.offset
                           message = $"expected =, but found nothing" }
             | Ok (List keys, _) ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected string as key of definiation, but found list {keys}" }
             | Error error -> Error error
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected $, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected $, but found nothing" }
 
     let parseSceneHeading (source: Source) =
@@ -183,19 +193,16 @@ module Lang =
                     |> Array.map
                         (fun str ->
                             let parts = str.Split '-'
+
                             match parts.[0].Trim() with
                             | "INT" ->
                                 match Array.tryItem 1 parts with
-                                | Some details ->
-                                    Interior (details.Trim())
-                                | _ ->
-                                    Interior ""
+                                | Some details -> Interior(details.Trim())
+                                | _ -> Interior ""
                             | "EXT" ->
                                 match Array.tryItem 1 parts with
-                                | Some details ->
-                                    Exterior (details.Trim())
-                                | _ ->
-                                    Exterior ""
+                                | Some details -> Exterior(details.Trim())
+                                | _ -> Exterior ""
                             | _ -> Other str)
 
                 if Array.length parts = 1 then
@@ -214,19 +221,23 @@ module Lang =
                     )
             | Some char ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected ], but found {char}" }
             | None ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected ], but found nothing" }
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected [, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected [, but found nothing" }
 
     let parseAnnotation (source: Source) =
@@ -252,19 +263,23 @@ module Lang =
                 )
             | Some char ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected ), but found {char}" }
             | None ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected ), but found nothing" }
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected (, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected (, but found nothing" }
 
     let parseCharacters (source: Source) =
@@ -314,11 +329,13 @@ module Lang =
             | Error error -> Error error
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected @, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected @, but found nothing" }
 
     let rec parseDialogueContent (contents: DialogueContent array) (source: Source) =
@@ -367,19 +384,23 @@ module Lang =
                     )
             | Some char ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected \", but found {char}" }
             | None ->
                 Error
-                    { offset = source.offset
+                    { line = source.line
+                      offset = source.offset
                       message = $"expected \", but found nothing" }
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected \", but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected \", but found nothing" }
 
     let rec parseDialogue (dialogues: Dialogue array) (source: Source) =
@@ -412,20 +433,24 @@ module Lang =
                     | Error error -> Error error
                 | Some char ->
                     Error
-                        { offset = source.offset
+                        { line = source.line
+                          offset = source.offset
                           message = $"expected @, but found {char}" }
                 | None ->
                     Error
-                        { offset = source.offset
+                        { line = source.line
+                          offset = source.offset
                           message = $"expected @, but found nothing" }
             | Error error -> Error error
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected @, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected @, but found nothing" }
 
     let parseTransition (source: Source) =
@@ -448,11 +473,13 @@ module Lang =
             )
         | Some char ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected >, but found {char}" }
         | None ->
             Error
-                { offset = source.offset
+                { line = source.line
+                  offset = source.offset
                   message = $"expected >, but found v" }
 
 
@@ -510,15 +537,30 @@ module Lang =
                         | Error error -> Error error
                     | None ->
                         Error
-                            { offset = newSource2.offset
+                            { line = newSource2.line
+                              offset = newSource2.offset
                               message = "expected dialogue or actions" }
                 | Error error -> Error error
-            | Some '\r'
+            | Some '\r' ->
+                match Seq.tryHead (Seq.tail source.chars) with
+                | Some '\n' ->
+                    parse
+                        (Seq.append lines [| Action LineBreak |])
+                        { source with
+                            line = source.line + 1
+                            chars = Seq.skip 2 source.chars
+                            offset = source.offset + 2 }
+                | _ ->
+                    match parseAction source with
+                    | Ok (action, newSource) -> parse (Seq.append lines [| Action action |]) newSource
+                    | Error error -> Error error
             | Some '\n' ->
                 parse
                     (Seq.append lines [| Action LineBreak |])
-                    { chars = Seq.tail source.chars
-                      offset = source.offset + 1 }
+                    { source with
+                        line = source.line + 1
+                        chars = Seq.tail source.chars
+                        offset = source.offset + 1 }
             | _ ->
                 match parseAction source with
                 | Ok (action, newSource) -> parse (Seq.append lines [| Action action |]) newSource

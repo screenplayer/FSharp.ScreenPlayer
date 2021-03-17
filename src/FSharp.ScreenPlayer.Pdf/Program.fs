@@ -20,7 +20,7 @@ let main argv =
                 yield char
         }
 
-    match parse Seq.empty { offset = 0; chars = data } with
+    match parse Seq.empty { line = 0; offset = 0; chars = data } with
     | Ok lines ->
         let document = Document()
         document.Styles.[StyleNames.Normal].Font.Name <- "Lucida Sans"

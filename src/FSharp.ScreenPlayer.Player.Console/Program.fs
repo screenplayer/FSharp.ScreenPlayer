@@ -17,7 +17,7 @@ let main argv =
         }
 
 
-    match parse Seq.empty { offset = 0; chars = data } with
+    match parse Seq.empty { line = 0; offset = 0; chars = data } with
     | Ok lines ->
         for line in lines do
             match line with
