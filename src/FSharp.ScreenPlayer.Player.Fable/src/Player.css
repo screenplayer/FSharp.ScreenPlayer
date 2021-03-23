@@ -67,3 +67,9 @@
   margin: 0;
   padding: 1rem;
 }
+
+.screenplay__player__actions {
+  padding: 0.5rem;
+
+  text-align: center;
+}

@@ -4,56 +4,55 @@ open Elmish
 
 open Fable.React
 open Fable.React.Props
-open Fable.React.Helpers
-open Fable.React.Standard
 open Browser.Types
 
 Fable.Core.JsInterop.importAll "./Editor.css"
 
-type Model = { title: string; content: string }
+type Model = { title: string; content: string; textareaHeight: float option }
 
 type Msg =
+    | Update of string * float
     | Preview
-    | Update of string
-    | Cancel
-    | Submit
+    | Save
 
 let init (title: string) (content: string) =
-    { title = title; content = content }
+    { title = title; content = content; textareaHeight = None }
 
 let update (msg: Msg) (model: Model) =
     match msg with
-    | Update content ->
-        { model with content = content }, Cmd.none
+    | Update (content, height) ->
+        { model with content = content; textareaHeight = Some height }, Cmd.none
     | _ ->
         model, Cmd.none
 
 let view (model: Model) (dispatch: Dispatch<Msg>) =
     let handleInput (evt: Event) =
-        dispatch (Update (evt.target :?> HTMLTextAreaElement).value)
+        let content = (evt.target :?> HTMLTextAreaElement).value
+        let height = (evt.target :?> HTMLTextAreaElement).scrollHeight
+        dispatch (Update (content, height))
 
-    let handleCancel (evt: Event) = dispatch Cancel
-
-    let handleSubmit (evt: Event) = dispatch Submit
+    let handleSave (evt: Event) = dispatch Save
 
     let handlePreview (evt: Event) = dispatch Preview
 
+    let textareaStyle =
+        match model.textareaHeight with
+        | Some height ->
+            [ Height height ]
+        | None ->
+            []
+
     div [ Class "screenplay__editor" ] [
-        header [ Class "screenplay__editor__header" ] [
-            h4 [] [ str model.title ]
-            button [ Class "button button--primary"; OnClick handlePreview ] [
-                str "Preview"
-            ]
-        ]
         textarea [ Class "screenplay__editor__input"
                    OnInput handleInput
-                   DefaultValue model.content ] []
+                   DefaultValue model.content
+                   Style textareaStyle ] []
         footer [ Class "screenplay__editor__actions" ] [
-            button [ Class "button button--outline"; OnClick handleCancel ] [
-                str "Cancel"
-            ]
-            button [ Class "button button--primary"; OnClick handleSubmit ] [
+            button [ Type "button"; Class "button button--primary"; OnClick handleSave ] [
                 str "Save"
+            ]
+            button [ Type "button"; Class "button button--primary"; OnClick handlePreview ] [
+                str "Preview"
             ]
         ]
     ]

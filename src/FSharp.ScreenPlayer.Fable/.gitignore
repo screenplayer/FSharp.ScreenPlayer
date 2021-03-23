@@ -1,2 +1,3 @@
 src/*.js
 .fable
+public/bundle.js

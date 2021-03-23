@@ -1,0 +1,13 @@
+.page__header {
+    border-bottom: 1px solid #cccccc;
+    background-color: white;
+}
+
+.page__header h4 span {
+    font-size: 1.5rem;
+}
+
+.page__header h4 a {
+    margin: 0 1rem;
+    font-size: 1rem;
+}

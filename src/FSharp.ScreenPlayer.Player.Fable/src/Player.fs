@@ -124,11 +124,13 @@ let view (model: Model) (dispatch: Dispatch<Msg>) =
         ]
         footer [ Class "screenplay__player__actions" ] [
             button [ Disabled(model.index = 0)
-                     OnClick handlePrevious ] [
+                     OnClick handlePrevious
+                     Class "button button--primary" ] [
                 str "Prev"
             ]
             button [ Disabled(model.index >= (Seq.length model.lines - 1))
-                     OnClick handleNext ] [
+                     OnClick handleNext
+                     Class "button button--primary" ] [
                 str "Next"
             ]
         ]

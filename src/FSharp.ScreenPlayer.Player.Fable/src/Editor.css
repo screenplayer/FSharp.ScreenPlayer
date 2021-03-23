@@ -19,42 +19,8 @@
 
   width: 100%;
   min-height: 20rem;
-
-  resize: vertical;
 }
 
 .screenplay__editor__actions {
   margin: 1rem 0 0 0;
-}
-
-.button {
-  padding: 0.5rem 1rem;
-  border-width: 1px;
-  border-style: solid;
-}
-
-.screenplay__editor__actions .button {
-  margin: 0 0.5rem;
-}
-
-.screenplay__editor .button.button--primary {
-  border-color: var(--primary-color, black);
-  color: white;
-
-  background-color: var(--primary-color, black);
-}
-
-.screenplay__editor .button.button--outline {
-  border-color: var(--primary-color, black);
-  color:  var(--primary-color, black);
-
-  background-color: white;
-}
-
-.screenplay__editor .button:first-child {
-  margin-left: 0;
-}
-
-.screenplay__editor .button:first-child {
-  margin-right: 0;
 }
